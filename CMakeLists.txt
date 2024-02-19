@@ -9,10 +9,7 @@ set(SR_UTILS_FMT_HEADER_ONLY ON)
 
 add_subdirectory(libs/Utils)
 
-add_library(asio INTERFACE)
-target_include_directories(asio INTERFACE libs/asio/include)
-
 add_executable(Innertia cxx/Innertia.cxx main.cpp)
 
 target_include_directories(Innertia PUBLIC inc ${SR_UTILS_INCLUDE_DIRECTORIES})
-target_link_libraries(Innertia PUBLIC asio Utils)
+target_link_libraries(Innertia PUBLIC Utils)
