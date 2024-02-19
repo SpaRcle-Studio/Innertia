@@ -5,7 +5,7 @@
 
 #include <Core/Block.h>
 
-int main(int argc, char*argv[]) {
+int main(int argc, char* argv[]) {
     auto&& applicationPath = SR_PLATFORM_NS::GetApplicationPath().GetFolder();
     SR_UTILS_NS::Debug::Instance().Init(applicationPath, true, SR_UTILS_NS::Debug::Theme::Dark);
 
@@ -29,19 +29,7 @@ int main(int argc, char*argv[]) {
     hash += 1;
 
     std::cout << hash << std::endl;
-
-    asio::error_code errorCode;
-    asio::io_context context;
-    asio::ip::tcp::endpoint endpoint(asio::ip::make_address("127.0.0.1", errorCode), 80);
-    asio::ip::tcp::socket socket(context);
-    socket.connect(endpoint, errorCode);
-
-    if (!errorCode) {
-        std::cout << "Connected!" << std::endl;
-    }
-    else {
-        std::cout << "Failed to connect to address: " << errorCode.message() << std::endl;
-    }*/
+    */
 
     return 0;
 }
