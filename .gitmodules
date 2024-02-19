@@ -1,3 +1,6 @@
 [submodule "libs/Utils"]
 	path = libs/Utils
 	url = https://github.com/SpaRcle-Studio/SRCommon
+[submodule "libs/qtred"]
+	path = libs/qtred
+	url = https://github.com/SpaRcle-Studio/qtred.git

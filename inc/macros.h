@@ -12,7 +12,7 @@
 #define IR_UTILS_NS Innertia::Utils
 #define IR_TYPES_NS Innertia::Utils::Types
 
-#define IR_HASH_INVALID -1
+#define IR_HASH_INVALID (-1)
 
 #define IR_NODISCARD [[nodiscard]]
 
