@@ -1,9 +1,17 @@
+#include <Utils/Debug.h>
+#include <Utils/Platform/Platform.h>
+
 #include <Core/Block.h>
 
 #include <asio/ip/tcp.hpp>
 #include <asio/io_context.hpp>
 
 int main(int argc, char*argv[]) {
+    auto&& applicationPath = SR_PLATFORM_NS::GetApplicationPath().GetFolder();
+    SR_UTILS_NS::Debug::Instance().Init(applicationPath, true, SR_UTILS_NS::Debug::Theme::Dark);
+
+    SR_LOG("Hello, World!");
+
     IR_TYPES_NS::uint256_t hash = "2938472983479283742038746283746283746287346729363475638475682743";
 
     std::cout << hash << std::endl;

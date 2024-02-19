@@ -4,7 +4,7 @@
 #ifndef INNERTIA_MACROS_H
 #define INNERTIA_MACROS_H
 
-#include <Utils/stdInclude.h>
+#include <Utils/macros.h>
 
 #define IR_UINT64_MAX UINT64_MAX
 

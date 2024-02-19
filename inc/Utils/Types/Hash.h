@@ -4,6 +4,7 @@
 #ifndef INNERTIA_HASH_H
 #define INNERTIA_HASH_H
 
+#include <macros.h>
 #include <Utils/Types/uintWide_t.h>
 
 namespace IR_TYPES_NS {
