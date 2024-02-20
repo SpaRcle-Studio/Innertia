@@ -5,7 +5,7 @@
 #define INNERTIA_HASH_H
 
 #include <macros.h>
-#include <Utils/Types/uintWide_t.h>
+#include <Utils/Types/UintWide_t.h>
 
 namespace IR_TYPES_NS {
     template<typename T> class Hash {
