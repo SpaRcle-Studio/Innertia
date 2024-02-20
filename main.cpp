@@ -50,6 +50,9 @@ int32_t TestAcceptor(const SR_NETWORK_NS::Context::Ptr& pContext) {
 
     CommonCycle(pContext);
 
+    pSocket->Close();
+    pAcceptor->Close();
+
     SR_INFO("Acceptor test passed!");
 
     return 0;
@@ -92,6 +95,11 @@ int main(int argc, char* argv[]) {
 
     auto&& pContext = SR_NETWORK_NS::Context::Create();
 
+    if (!pContext->Run()) {
+        SR_ERROR("Failed to run context!");
+        return -1;
+    }
+
     // if (TestPeerToPeer(pContext) != 0) {
     //     SR_ERROR("Failed to test peer to peer!");
     // }
@@ -101,6 +109,8 @@ int main(int argc, char* argv[]) {
     }
 
     SR_LOG("Exiting application...");
+
+    pContext->Stop();
 
     return 0;
 }
