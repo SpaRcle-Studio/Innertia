@@ -1,7 +1,11 @@
 #include <Utils/Debug.h>
 #include <Utils/Platform/Platform.h>
 #include <Utils/Network/Socket.h>
+#include <Utils/Network/Server.h>
+#include <Utils/Network/Client.h>
+#include <Utils/Network/Acceptor.h>
 #include <Utils/Locale/Encoding.h>
+#include <Utils/Input/InputSystem.h>
 
 #include <Core/Block.h>
 
@@ -13,7 +17,14 @@ int main(int argc, char* argv[]) {
 
     SR_LOG("Starting application...");
 
-    auto&& pSocket = SR_NETWORK_NS::Socket::Create(SR_NETWORK_NS::SocketType::TCP);
+    auto&& pContext = SR_NETWORK_NS::Context::Create();
+    auto&& pAcceptor = pContext->CreateAcceptor(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
+
+    pAcceptor->Start([](auto&& pSocket) {
+        SR_LOG("Accepted connection");
+    });
+
+    auto&& pSocket = pContext->CreateSocket(SR_NETWORK_NS::SocketType::TCP);
     if (!pSocket->Connect("127.0.0.1", 80)) {
         SR_LOG("Failed to connect to address");
         return -1;
@@ -22,14 +33,17 @@ int main(int argc, char* argv[]) {
         SR_LOG("Connected!");
     }
 
-    /*IR_TYPES_NS::uint256_t hash = "2938472983479283742038746283746283746287346729363475638475682743";
+    while (true) {
+        pContext->Pool();
 
-    std::cout << hash << std::endl;
+        SR_UTILS_NS::Input::Instance().Check();
 
-    hash += 1;
+        if (SR_UTILS_NS::Input::Instance().GetKeyDown(SR_UTILS_NS::KeyCode::Escape)) {
+            break;
+        }
+    }
 
-    std::cout << hash << std::endl;
-    */
+    SR_LOG("Exiting application...");
 
     return 0;
 }
