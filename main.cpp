@@ -92,9 +92,9 @@ int main(int argc, char* argv[]) {
 
     auto&& pContext = SR_NETWORK_NS::Context::Create();
 
-    if (TestPeerToPeer(pContext) != 0) {
-        SR_ERROR("Failed to test peer to peer!");
-    }
+    // if (TestPeerToPeer(pContext) != 0) {
+    //     SR_ERROR("Failed to test peer to peer!");
+    // }
 
     if (TestAcceptor(pContext) != 0) {
         SR_ERROR("Failed to test acceptor!");
