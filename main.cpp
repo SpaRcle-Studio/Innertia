@@ -10,6 +10,8 @@
 
 #include <Core/Block.h>
 
+#include <asio.hpp>
+
 void CommonCycle(const SR_NETWORK_NS::Context::Ptr& pContext) {
     pContext->Pool();
 
@@ -85,6 +87,21 @@ int32_t TestPeerToPeer(const SR_NETWORK_NS::Context::Ptr& pContext) {
     return 0;
 }
 
+void TestResolve(const std::string& name) {
+    asio::io_service io_service;
+    asio::ip::tcp::resolver resolver(io_service);
+    asio::ip::tcp::resolver::query query(name, "");
+    for(asio::ip::tcp::resolver::iterator i = resolver.resolve(query);
+        i != asio::ip::tcp::resolver::iterator();
+        ++i)
+    {
+        asio::ip::tcp::endpoint end = *i;
+
+        SR_LOG("Resolved '{}': address: '{}'", name, end.address().to_string());
+    }
+    std::cout << '\n';
+}
+
 int main(int argc, char* argv[]) {
     auto&& applicationPath = SR_PLATFORM_NS::GetApplicationPath().GetFolder();
     SR_UTILS_NS::Debug::Instance().Init(applicationPath, true, SR_UTILS_NS::Debug::Theme::Dark);
@@ -108,9 +125,10 @@ int main(int argc, char* argv[]) {
         SR_ERROR("Failed to test acceptor!");
     }
 
+    TestResolve("www.google.com");
+
     SR_LOG("Exiting application...");
 
     pContext->Stop();
-
     return 0;
 }
