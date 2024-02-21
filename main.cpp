@@ -33,33 +33,59 @@ void CommonCycle(const SR_NETWORK_NS::Context::Ptr& pContext) {
     /// }
 }
 
-int32_t TestAcceptor(const SR_NETWORK_NS::Context::Ptr& pContext) {
+int32_t TestAcceptor() {
     SR_INFO("Testing acceptor...");
 
-    auto&& pAcceptor = pContext->CreateAcceptor(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
+    auto&& serverThread = std::thread([]() {
+        auto&& pContext = SR_NETWORK_NS::Context::Create();
 
-    pAcceptor->SetCallback([](auto&& pSocket) {
-        SR_LOG("Accepted connection");
-        pSocket->Close();
-    });
-
-    pAcceptor->StartAsync();
-
-    for (uint8_t i = 0; i < 4; ++i) {
-        auto&& pSocket = pContext->CreateSocket(SR_NETWORK_NS::SocketType::TCP);
-        if (!pSocket->Connect("127.0.0.1", 80)) {
-            SR_LOG("Failed to connect to address {} socket!", i);
+        if (!pContext->Run()) {
+            SR_ERROR("[Server] Failed to run context!");
             return -1;
         }
-        else {
-            SR_LOG("Connected {} socket!", i);
+
+        auto&& pAcceptor = pContext->CreateAcceptor(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
+
+        pAcceptor->SetCallback([](auto&& pSocket) {
+            SR_LOG("[Server] Accepted connection");
+            pSocket->Close();
+        });
+
+        pAcceptor->StartAsync();
+
+        CommonCycle(pContext);
+
+        pAcceptor->Close();
+        pContext->Stop();
+
+        return 0;
+    });
+
+    auto&& clientThread = std::thread([]() {
+        auto&& pContext = SR_NETWORK_NS::Context::Create();
+
+        if (!pContext->Run()) {
+            SR_ERROR("[Client] Failed to run context!");
+            return -1;
         }
-        pSocket->Close();
-    }
 
-    CommonCycle(pContext);
+        for (uint8_t i = 0; i < 4; ++i) {
+            auto&& pSocket = pContext->CreateSocket(SR_NETWORK_NS::SocketType::TCP);
+            if (!pSocket->Connect("127.0.0.1", 80)) {
+                SR_LOG("[Client] Failed to connect to address {} socket!", i);
+                return -1;
+            }
+            else {
+                SR_LOG("[Client] Connected {} socket!", i);
+            }
+            pSocket->Close();
+        }
+        pContext->Stop();
+        return 0;
+    });
 
-    pAcceptor->Close();
+    serverThread.join();
+    clientThread.join();
 
     SR_INFO("Acceptor test passed!");
 
@@ -138,7 +164,7 @@ int main(int argc, char* argv[]) {
     //    SR_ERROR("Failed to test peer to peer!");
     //}
 
-    if (TestAcceptor(pContext) != 0) {
+    if (TestAcceptor() != 0) {
         SR_ERROR("Failed to test acceptor!");
     }
 
