@@ -47,7 +47,7 @@ int32_t TestAcceptor() {
         auto&& pAcceptor = pContext->CreateAcceptor(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
 
         pAcceptor->SetCallback([](auto&& pSocket) {
-            SR_LOG("[Server] Accepted connection");
+            SR_LOG("[Server] Accepted connection. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
             pSocket->Close();
         });
 
@@ -76,7 +76,7 @@ int32_t TestAcceptor() {
                 return -1;
             }
             else {
-                SR_LOG("[Client] Connected {} socket!", i);
+                SR_LOG("[Client] Connected {} socket. Local port {}. Remote port {}", i, pSocket->GetLocalPort(), pSocket->GetRemotePort());
             }
             pSocket->Close();
         }
