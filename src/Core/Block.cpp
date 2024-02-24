@@ -3,24 +3,23 @@
 //
 
 #include <Core/Block.h>
-#include <iostream>
 
 namespace IR_CORE_NS {
 
-    Block::Block(const std::string& timestamp, uint64_t difficulty, Hash* hash, Hash* previousBlock, uint64_t nonce)
+    Block::Block(const std::string& timestamp, uint64_t difficulty, HashPtr hash, HashPtr previousBlock, uint64_t nonce)
         : m_timestamp(timestamp)
         , m_difficulty(difficulty)
-        , m_hash(new Hash(*hash))
-        , m_previousBlock(new Hash(*previousBlock))
+        , m_hash(hash)
+        , m_previousBlock(previousBlock)
         , m_nonce(nonce)
     {}
 
 
-    IR_NODISCARD Block::Hash* Block::GetHash() const {
+    IR_NODISCARD HashPtr Block::GetHash() const {
         return m_hash;
     }
 
-    IR_NODISCARD Block::Hash* Block::GetPreviousBlockHash() const {
+    IR_NODISCARD HashPtr Block::GetPreviousBlockHash() const {
         return m_previousBlock;
     }
 
@@ -43,6 +42,7 @@ namespace IR_CORE_NS {
 
     std::string Block::ToString() const {
         SRHalt("Block::ToString() not implemented over yet.");
+
     
         return std::string();
     }

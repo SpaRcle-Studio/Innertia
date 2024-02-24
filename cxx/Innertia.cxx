@@ -3,3 +3,4 @@
 //
 
 #include "../src/Core/Block.cpp"
+#include "../src/Core/Transaction.cpp"
