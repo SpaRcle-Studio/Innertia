@@ -11,11 +11,13 @@
 #include <Core/Block.h>
 
 #include <asio.hpp>
+#include <Utils/Types/Thread.h>
+
+static std::atomic<bool> g_isRunning = true;
 
 void CommonCycle(const SR_NETWORK_NS::Context::Ptr& pContext) {
-    for (uint32_t i = 0; i < 25; ++i) {
+    while (g_isRunning) {
         pContext->Poll();
-        SR_PLATFORM_NS::Sleep(40);
     }
 
     /// SR_LOG("Press ESC to continue...");
@@ -48,6 +50,7 @@ int32_t TestAcceptor() {
 
         pAcceptor->SetCallback([](auto&& pSocket) {
             SR_LOG("[Server] Accepted connection. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
+            pSocket->Send("Hello from server!", 18);
             pSocket->Close();
         });
 
@@ -78,11 +81,20 @@ int32_t TestAcceptor() {
             else {
                 SR_LOG("[Client] Connected {} socket. Local port {}. Remote port {}", i, pSocket->GetLocalPort(), pSocket->GetRemotePort());
             }
+            pSocket->SetReceiveCallback([](auto&& pSocket, auto&& pPackage, auto&& size) {
+                SR_LOG("[Client] Received data from server. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
+            });
+            pSocket->AsyncReceive(18);
             pSocket->Close();
         }
+
+        CommonCycle(pContext);
+
         pContext->Stop();
         return 0;
     });
+
+    g_isRunning = false;
 
     serverThread.join();
     clientThread.join();
@@ -92,37 +104,68 @@ int32_t TestAcceptor() {
     return 0;
 }
 
-int32_t TestPeerToPeer(const SR_NETWORK_NS::Context::Ptr& pContext) {
+int32_t TestPeerToPeer() {
     SR_INFO("Testing peer to peer...");
 
-    std::vector<SR_NETWORK_NS::PeerToPeer::Ptr> peers;
+    auto&& dnsThread = std::thread([]() {
+        auto&& pContext = SR_NETWORK_NS::Context::CreateAndRun();
+        auto&& pDNS = pContext->CreateP2P(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
 
-    for (auto i = 0; i < 4; ++i) {
-        auto&& pPeer = pContext->CreateP2P(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80 + i + 1);
-
-        pPeer->SetOnAcceptCallback([](auto&& pP2P, auto&& pSocket) {
-            SR_LOG("Accepted P2P connection! Server {}, Client {}", pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetLocalPort());
+        pDNS->SetOnAcceptCallback([](auto&& pP2P, auto&& pSocket) {
+            SR_LOG("[DNS] Accepted P2P connection! Server {}, Client {}", pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetRemotePort());
         });
 
-        if (!pPeer->Run()) {
+        if (!pDNS->Run()) {
             SR_ERROR("Failed to run peer to peer!");
-            return -1;
         }
 
-        if (i != 0) {
-            if (!pPeer->Connect("127.0.0.1", 80 + i)) {
-                SR_ERROR("Failed to connect to peer!");
-                return -1;
+        CommonCycle(pContext);
+
+        SR_LOG("[DNS] Count of connections: {}", pDNS->GetConnectionsCount());
+
+        pDNS->Close();
+        pContext->Stop();
+    });
+
+    std::vector<std::thread> peers;
+
+    for (auto i = 1; i <= 4; ++i) {
+        SR_PLATFORM_NS::Sleep(1000);
+        peers.emplace_back([i]() {
+            auto&& pContext = SR_NETWORK_NS::Context::CreateAndRun();
+            auto&& pPeer = pContext->CreateP2P(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80 + i);
+
+            pPeer->SetOnAcceptCallback([i](auto&& pP2P, auto&& pSocket) {
+                SR_LOG("[Peer {}] Accepted P2P connection! Server {}, Client {}", i, pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetLocalPort());
+            });
+
+            if (!pPeer->Run()) {
+                SR_ERROR("Failed to run peer to peer!");
+                return;
             }
-        }
 
-        peers.push_back(pPeer);
+            if (!pPeer->Connect("127.0.0.1", 80)) { /// Connect to DNS
+                SR_ERROR("Failed to connect to peer!");
+                return;
+            }
+
+            CommonCycle(pContext);
+
+            SR_LOG("[Peer {}] Count of connections: {}", i, pPeer->GetConnectionsCount());
+
+            pPeer->Close();
+            pContext->Stop();
+        });
     }
 
-    CommonCycle(pContext);
+    SR_PLATFORM_NS::Sleep(2000);
 
-    for (auto&& pPeer : peers) {
-        pPeer->Close();
+    g_isRunning = false;
+
+    dnsThread.join();
+
+    for (auto&& peer : peers) {
+        peer.join();
     }
 
     SR_INFO("Peer to peer test passed!");
@@ -147,31 +190,23 @@ void TestResolve(const std::string& name) {
 
 int main(int argc, char* argv[]) {
     auto&& applicationPath = SR_PLATFORM_NS::GetApplicationPath().GetFolder();
+
     SR_UTILS_NS::Debug::Instance().Init(applicationPath, true, SR_UTILS_NS::Debug::Theme::Dark);
+    SR_HTYPES_NS::Thread::Factory::Instance().SetMainThread();
 
     SR_UTILS_NS::Locale::SetLocale();
 
     SR_LOG("Starting application...");
 
-    auto&& pContext = SR_NETWORK_NS::Context::Create();
+    TestPeerToPeer();
 
-    if (!pContext->Run()) {
-        SR_ERROR("Failed to run context!");
-        return -1;
-    }
-
-    //if (TestPeerToPeer(pContext) != 0) {
-    //    SR_ERROR("Failed to test peer to peer!");
+    //if (TestAcceptor() != 0) {
+    //    SR_ERROR("Failed to test acceptor!");
     //}
-
-    if (TestAcceptor() != 0) {
-        SR_ERROR("Failed to test acceptor!");
-    }
 
     /// TestResolve("www.google.com");
 
     SR_LOG("Exiting application...");
 
-    pContext->Stop();
     return 0;
 }
