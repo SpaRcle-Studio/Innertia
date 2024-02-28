@@ -4,7 +4,6 @@
 #ifndef INNERTIA_BLOCK_H
 #define INNERTIA_BLOCK_H
 
-#include <Utils/Types/MerkleTree.h>
 #include <Utils/Debug.h>
 #include <macros.h>
 
@@ -13,14 +12,17 @@
 
 namespace IR_CORE_NS {
     class Block {
-        using MerkleTree = SR_TYPES_NS::TreeT<256, SR_TYPES_NS::sha256_compress>;
-
     public:
-        Block(const std::string& timestamp, uint64_t difficulty, HashPtr hash, HashPtr previousBlock, uint64_t nonce);
-
-        IR_NODISCARD HashPtr GetHash() const;
+        using MerkleTree = 
+            SR_TYPES_NS::TreeT<IR_TYPES_NS::HashDetails::hash_size_bytes, SR_TYPES_NS::sha256_compress>;
         
-        IR_NODISCARD HashPtr GetPreviousBlockHash() const;
+        Block(const std::string& timestamp, uint64_t difficulty, 
+            IR_TYPES_NS::HashPtr hash, IR_TYPES_NS::HashPtr previousBlock, 
+            uint64_t nonce);
+
+        IR_NODISCARD IR_TYPES_NS::HashPtr GetHash() const;
+        
+        IR_NODISCARD IR_TYPES_NS::HashPtr GetPreviousBlockHash() const;
         
         IR_NODISCARD uint64_t GetNonce() const;
         
@@ -30,21 +32,18 @@ namespace IR_CORE_NS {
         
         IR_NODISCARD uint64_t GetSize() const;
 
-        IR_NODISCARD std::string ToString() const;
-
         ~Block();
-
 
     private:
         // Header
-        HashPtr m_previousBlock = nullptr;
+        IR_TYPES_NS::HashPtr m_previousBlock = nullptr;
         std::string m_timestamp;
         uint64_t m_difficulty = 0;
         uint64_t m_nonce = 0;
         MerkleTree m_merkleHash;
 
         // Block data
-        HashPtr m_hash = nullptr;
+        IR_TYPES_NS::HashPtr m_hash = nullptr;
         uint64_t m_size = 0;
         std::vector<Transaction>* m_transactions = nullptr;
     };

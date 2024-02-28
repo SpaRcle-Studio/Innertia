@@ -6,17 +6,22 @@
 
 namespace IR_CORE_NS {
 // TXInput
-	TXInput::TXInput(HashPtr out, uint32_t sequence)
+	TXInput::TXInput(IR_TYPES_NS::HashPtr out, uint32_t sequence)
 		: m_out(out)
 		, m_sequence(sequence)
 	{}
 
-	HashPtr TXInput::GetOut() const {
+	IR_TYPES_NS::HashPtr TXInput::GetOut() const {
 		return m_out;
 	}
 
 	uint32_t TXInput::GetSequence() const {
 		return m_sequence;
+	}
+
+
+	bool TXInput::IsTransactionCompete() const {
+		return m_sequence == 0xFFFFFFFF;
 	}
 // -----------
 
@@ -32,13 +37,18 @@ namespace IR_CORE_NS {
 // --------
 
 // Transaction
-	HashPtr Transaction::GetHash() const {
+	IR_TYPES_NS::HashPtr Transaction::GetHash() const {
 		return m_hash;
 	}
 
 
-	HashPtr Transaction::ComputeHash() {
+	IR_TYPES_NS::HashPtr Transaction::CalculateHash() {
 		return nullptr;
+	}
+
+
+	bool Transaction::IsCoinbase() const {
+		return (inputs.size() == 1) && (inputs.at(0).GetOut() == nullptr);
 	}
 
 }

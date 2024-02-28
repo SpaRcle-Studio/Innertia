@@ -1,4 +1,4 @@
-#include <Utils/Debug.h>
+﻿#include <Utils/Debug.h>
 #include <Utils/Platform/Platform.h>
 #include <Utils/Network/Socket.h>
 #include <Utils/Network/Server.h>
@@ -200,11 +200,23 @@ int main(int argc, char* argv[]) {
 
     TestPeerToPeer();
 
-    //if (TestAcceptor() != 0) {
-    //    SR_ERROR("Failed to test acceptor!");
-    //}
+    if (TestAcceptor() != 0) {
+        SR_ERROR("Failed to test acceptor!");
+    }
 
     /// TestResolve("www.google.com");
+
+    auto&& hash = SR_UTILS_NS::sha256<IR_TYPES_NS::IRHash>("123456789");
+    std::string correctHash("15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225");
+
+
+    SR_LOG("Hash testing...");
+    SR_LOG("SHA-256 hash from \"123456789\" is {}...", hash.to_string());
+    SR_LOG("Hash obtained from the function: {};", hash.to_string());
+    if (hash == correctHash)
+        SR_INFO("Test passed.");
+    else
+        SR_ERROR("Test failed");
 
     SR_LOG("Exiting application...");
 

@@ -1,4 +1,4 @@
-// 
+﻿// 
 // Created by qulop on 24.02.2024
 // 
 
@@ -6,27 +6,25 @@
 #define INNERTIA_TRANSACTION_H
 
 #include <macros.h>
+#include <Utils/Types/Hash.h>
 
-#include <Utils/Types/MerkleTree.h>
 #include <Utils/stdInclude.h>
 
 
 namespace IR_CORE_NS {
-	using IRHash = SR_TYPES_NS::HashT<256>;
-	using HashPtr = std::shared_ptr<IRHash>;
-
-
 	// Transaction input
 	class TXInput {
 	public:
-		TXInput(HashPtr out, uint32_t sequence);
+		TXInput(IR_TYPES_NS::HashPtr out, uint32_t sequence);
 
-		IR_NODISCARD HashPtr GetOut() const;
+		IR_NODISCARD IR_TYPES_NS::HashPtr GetOut() const;
 
 		IR_NODISCARD uint32_t GetSequence() const;
 
+		bool IsTransactionCompete() const;
+
 	private:
-		HashPtr m_out = nullptr;
+		IR_TYPES_NS::HashPtr m_out = nullptr;
 		uint32_t m_sequence = 0;
 	};
 
@@ -48,20 +46,20 @@ namespace IR_CORE_NS {
 	public:
 		Transaction() = default;
 
-		IR_NODISCARD HashPtr GetHash() const;
+		IR_NODISCARD IR_TYPES_NS::HashPtr GetHash() const;
 
-		HashPtr ComputeHash();
+		IR_TYPES_NS::HashPtr CalculateHash();
+
+		bool IsCoinbase() const;
 
 	public:
-		// For now transaction can contain only one input and output.
 		std::vector<TXInput> inputs;	// previous transactions
 		std::vector<TXOutput> outputs;	// ...and of subsiquent
 
 	private:
-		float m_value = 0;
-		HashPtr m_hash = nullptr;		// Hash of current transaction
-		
-		const uint32_t m_lockTime = 0;
+		IR_TYPES_NS::HashPtr m_hash = nullptr;		// Hash of current transaction
+			
+		const uint32_t m_lockTime = 0;	// The time until which the transaction will be frozen (～￣▽￣)～
 	};
 
 }
