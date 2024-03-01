@@ -17,19 +17,94 @@ namespace IR_TYPES_NS {
     }
 
 
-    template<typename T> class Hash {
+    // Size - hash size in bytes
+    // Repr - data type representing an unsigned integer
+    template<size_t Size, typename Repr>
+         requires std::same_as<typename Repr::limb_type, uint32_t>   // Currently only uint32_t as limb type
+    class Hash {
     public:
-        Hash() = default;
-        ~Hash() = default;
+        using ValueType = Repr;
+        using LimbType = Repr::limb_type;
 
-        T GetValue() const { return m_hash; }
+        Hash() = default;
+
+        Hash(Repr&& val) 
+            : m_hash(std::move(val))
+        {}
+
+        // hexStr - a string representing a hexadecimal number
+        Hash(const std::string& hexStr) {
+            assert(hexStr.size() == 2 * Size && "Hexadecimal number size(string length) must be twice Size");
+            std::array<uint8_t, Size> limbs;
+
+            for (size_t i = 0; i < Size; i++)
+            {
+                int tmp;
+                sscanf(hexStr.c_str() + 2 * i, "%02x", &tmp);
+                arr.at(i) = tmp;
+            }
+        }
+        
+        ValueType GetRawHash() const { 
+            return m_hash; 
+        }
+
+        std::string ToStringU8() const {
+            std::string result;
+            result.reserve(2 * Size);
+
+            for (const auto& limb : arr) {
+                auto&& str = std::format("{:02x}", limb);
+
+                result += str;
+            }
+
+            return result;
+        }
+
+        std::string ToStringU8Vendor() const {
+            size_t num_chars = 2 * Size;
+            std::string r(num_chars, '_');
+            for (size_t i = 0; i < Size; i++)
+                snprintf(
+                    const_cast<char*>(r.data() + 2 * i),
+                    num_chars + 1 - 2 * i,
+                    "%02x",
+                    arr[i]);
+            return r;
+        }
+
+        
+        std::string ToString(bool isLower=true) const { 
+            std::string result;
+            result.reserve(8 * Size);
+
+            for (const auto& limb : m_hash.representation()) {
+                for (auto i = 3; i >= 0; i--) {
+                    uint8_t byte = (limb >> (8 * i)) & 0xFF;
+                    auto&& str = std::format("{:02x}", byte);
+
+                    result += str;
+                }
+            }
+
+            return result;
+        }
+
+        bool IsEmpty() const {
+            return m_hash == IR_HASH_INVALID;
+        }
+
+    
+        ~Hash() = default;
+    
     private:
-        T m_hash = IR_HASH_INVALID;
+        ValueType m_hash = IR_HASH_INVALID;
+        std::array<uint8_t, Size> arr;
     };
 
 
-
-    using IRHash = SR_TYPES_NS::HashT<HashDetails::hash_size_bytes>; // Here in the template parameter the size in bytes is required
+    using IRHash = Hash<HashDetails::hash_size_bytes, SR_TYPES_NS::uint256_t>;
     using HashPtr = std::shared_ptr<IRHash>;
 }
 
