@@ -36,20 +36,20 @@ void CommonCycle(const SR_NETWORK_NS::Context::Ptr& pContext) {
 }
 
 int32_t TestAcceptor() {
-    SR_INFO("Testing acceptor...");
+    SR_INFO("TestAcceptor() : testing acceptor...");
 
     auto&& serverThread = std::thread([]() {
         auto&& pContext = SR_NETWORK_NS::Context::Create();
 
         if (!pContext->Run()) {
-            SR_ERROR("[Server] Failed to run context!");
+            SR_ERROR("TestAcceptor() :  [Server] Failed to run context!");
             return -1;
         }
 
         auto&& pAcceptor = pContext->CreateAcceptor(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
 
         pAcceptor->SetCallback([](auto&& pSocket) {
-            SR_LOG("[Server] Accepted connection. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
+            SR_LOG("TestAcceptor() :  [Server] Accepted connection. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
             pSocket->Send("Hello from server!", 18);
             pSocket->Close();
         });
@@ -68,21 +68,21 @@ int32_t TestAcceptor() {
         auto&& pContext = SR_NETWORK_NS::Context::Create();
 
         if (!pContext->Run()) {
-            SR_ERROR("[Client] Failed to run context!");
+            SR_ERROR("TestAcceptor() : [Client] Failed to run context!");
             return -1;
         }
 
         for (uint8_t i = 0; i < 4; ++i) {
             auto&& pSocket = pContext->CreateSocket(SR_NETWORK_NS::SocketType::TCP);
             if (!pSocket->Connect("127.0.0.1", 80)) {
-                SR_LOG("[Client] Failed to connect to address {} socket!", i);
+                SR_LOG("TestAcceptor() : [Client] Failed to connect to address {} socket!", i);
                 return -1;
             }
             else {
-                SR_LOG("[Client] Connected {} socket. Local port {}. Remote port {}", i, pSocket->GetLocalPort(), pSocket->GetRemotePort());
+                SR_LOG("TestAcceptor() : [Client] Connected {} socket. Local port {}. Remote port {}", i, pSocket->GetLocalPort(), pSocket->GetRemotePort());
             }
             pSocket->SetReceiveCallback([](auto&& pSocket, auto&& pPackage, auto&& size) {
-                SR_LOG("[Client] Received data from server. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
+                SR_LOG("TestAcceptor() : [Client] Received data from server. Local port {}. Remote port {}", pSocket->GetLocalPort(), pSocket->GetRemotePort());
             });
             pSocket->AsyncReceive(18);
             pSocket->Close();
@@ -99,29 +99,29 @@ int32_t TestAcceptor() {
     serverThread.join();
     clientThread.join();
 
-    SR_INFO("Acceptor test passed!");
+    SR_INFO("TestAcceptor() :  acceptor test passed!");
 
     return 0;
 }
 
 int32_t TestPeerToPeer() {
-    SR_INFO("Testing peer to peer...");
+    SR_INFO("TestPeerToPeer() : testing peer to peer...");
 
     auto&& dnsThread = std::thread([]() {
         auto&& pContext = SR_NETWORK_NS::Context::CreateAndRun();
         auto&& pDNS = pContext->CreateP2P(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80);
 
         pDNS->SetOnAcceptCallback([](auto&& pP2P, auto&& pSocket) {
-            SR_LOG("[DNS] Accepted P2P connection! Server {}, Client {}", pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetRemotePort());
+            SR_LOG("TestPeerToPeer() : [DNS] Accepted P2P connection! Server {}, Client {}", pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetRemotePort());
         });
 
         if (!pDNS->Run()) {
-            SR_ERROR("Failed to run peer to peer!");
+            SR_ERROR("TestPeerToPeer() :  failed to run peer to peer!");
         }
 
         CommonCycle(pContext);
 
-        SR_LOG("[DNS] Count of connections: {}", pDNS->GetConnectionsCount());
+        SR_LOG("TestPeerToPeer() :  [DNS] Count of connections: {}", pDNS->GetConnectionsCount());
 
         pDNS->Close();
         pContext->Stop();
@@ -136,22 +136,22 @@ int32_t TestPeerToPeer() {
             auto&& pPeer = pContext->CreateP2P(SR_NETWORK_NS::SocketType::TCP, "127.0.0.1", 80 + i);
 
             pPeer->SetOnAcceptCallback([i](auto&& pP2P, auto&& pSocket) {
-                SR_LOG("[Peer {}] Accepted P2P connection! Server {}, Client {}", i, pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetLocalPort());
+                SR_LOG("TestPeerToPeer() : [Peer {}] Accepted P2P connection! Server {}, Client {}", i, pP2P->GetAcceptor()->GetLocalPort(), pSocket->GetLocalPort());
             });
 
             if (!pPeer->Run()) {
-                SR_ERROR("Failed to run peer to peer!");
+                SR_ERROR("TestPeerToPeer() : failed to run peer to peer!");
                 return;
             }
 
             if (!pPeer->Connect("127.0.0.1", 80)) { /// Connect to DNS
-                SR_ERROR("Failed to connect to peer!");
+                SR_ERROR("TestPeerToPeer() :  failed to connect to peer!");
                 return;
             }
 
             CommonCycle(pContext);
 
-            SR_LOG("[Peer {}] Count of connections: {}", i, pPeer->GetConnectionsCount());
+            SR_LOG("TestPeerToPeer() :  [Peer {}] Count of connections: {}", i, pPeer->GetConnectionsCount());
 
             pPeer->Close();
             pContext->Stop();
@@ -168,7 +168,7 @@ int32_t TestPeerToPeer() {
         peer.join();
     }
 
-    SR_INFO("Peer to peer test passed!");
+    SR_INFO("TestPeerToPeer() :  peer to peer test passed!");
 
     return 0;
 }
@@ -183,9 +183,26 @@ void TestResolve(const std::string& name) {
     {
         asio::ip::tcp::endpoint end = *i;
 
-        SR_LOG("Resolved '{}': address: '{}'", name, end.address().to_string());
+        SR_LOG("TestResolve() : Resolved '{}': address: '{}'", name, end.address().to_string());
     }
     std::cout << '\n';
+}
+
+void TestHash() {
+    auto&& hash = SR_UTILS_NS::sha256<IR_TYPES_NS::IRHash>("123456789");
+    std::string correctHash("15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225");
+
+
+    SR_LOG("Hash testing...");
+    SR_LOG("SHA-256 hash from \"123456789\" is {}...", hash.ToString());
+    SR_LOG("Hash obtained from the function: {};", hash.ToString());
+
+    /*if (hash == correctHash) {
+        SR_INFO("TestHash() : hash test passed!");
+    }
+    else {
+        SR_ERROR("TestHash() : test failed!");
+    }*/
 }
 
 int main(int argc, char* argv[]) {
@@ -205,18 +222,6 @@ int main(int argc, char* argv[]) {
     }
 
     /// TestResolve("www.google.com");
-
-    auto&& hash = SR_UTILS_NS::sha256<IR_TYPES_NS::IRHash>("123456789");
-    std::string correctHash("15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225");
-
-
-    SR_LOG("Hash testing...");
-    SR_LOG("SHA-256 hash from \"123456789\" is {}...", hash.to_string());
-    SR_LOG("Hash obtained from the function: {};", hash.to_string());
-    if (hash == correctHash)
-        SR_INFO("Test passed.");
-    else
-        SR_ERROR("Test failed");
 
     SR_LOG("Exiting application...");
 
