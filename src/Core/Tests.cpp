@@ -3,6 +3,7 @@
 //
 
 #include <Core/Tests.h>
+#include <Utils/Types/Hash.h>
 
 #include <Utils/macros.h>
 #include <Utils/stdInclude.h>
@@ -199,20 +200,20 @@ namespace IR_TESTS_NS {
         std::cout << '\n';
     }
 
-    bool Tests::TestHash() {
-        auto&& hash = SR_UTILS_NS::sha256<SR_TYPES_NS::HashT<32>>("123456789");
-        std::string correctHash("15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225");
+    bool Tests::TestHash() {     
+        auto&& nativeHashResult = SR_UTILS_NS::sha256<IR_TYPES_NS::IRHash>("SHA256");
+
+        std::string correctHash("b3abe5d8c69b38733ad57ea75e83bcae42bbbbac75e3a5445862ed2f8a2cd677");
 
 
-        SR_LOG("TestHash() : testing SHA256 implementation...");
-        SR_LOG("TestHash() : SHA-256 hash from \"123456789\" is {}...", hash.to_string());
-
-        if (hash.to_string() != correctHash) {
-            SR_ERROR("TestHash() : SHA-256 hash is incorrect!");
+        SR_LOG("TestHash() : testing SHA256 implementation(native)...");
+        SR_LOG("TestHash() : SHA-256 hash from \"SHA256\" is {}...", nativeHashResult.ToString());
+        
+        if (nativeHashResult.ToString() != correctHash) {
+            SR_ERROR("TestHash() : SHA-256 hash is incorrect. Expected hash {}", correctHash);
             return false;
         }
-
-        SR_LOG("TestHash() : calculated SHA-256 hash is correct!");
+        
         return true;
     }
 

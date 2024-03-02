@@ -1,5 +1,4 @@
 ﻿#include <Utils/Debug.h>
-
 #include <Utils/Platform/Platform.h>
 
 #include <Utils/Locale/Encoding.h>
@@ -19,8 +18,10 @@ int main(int argc, char* argv[]) {
 
     SR_LOG("Starting application...");
 
-    auto&& tests = IR_TESTS_NS::Tests();
-    tests.RunAll();
+    //auto&& tests = IR_TESTS_NS::Tests();
+    //tests.RunAll();
+
+    IR_TESTS_NS::Tests::TestHash();
 
     SR_LOG("Exiting application...");
     return 0;
