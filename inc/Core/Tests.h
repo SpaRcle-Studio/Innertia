@@ -14,8 +14,10 @@ namespace IR_TESTS_NS {
     public:
         static bool TestAcceptor();
         static bool TestPeerToPeer();
-        static void TestResolve(const std::string& name);
         static bool TestHash();
+
+        static void TestResolve(const std::string& name);
+        static void TestPinger();
 
     private:
         std::vector<std::function<bool()>> m_tests;

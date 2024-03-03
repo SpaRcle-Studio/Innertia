@@ -11,6 +11,7 @@
 #include <Utils/Network/Socket.h>
 #include <Utils/Network/PeerToPeer.h>
 #include <Utils/Network/Acceptor.h>
+#include <Utils/Network/Pinger.h>
 
 #include <Utils/Platform/Platform.h>
 
@@ -233,13 +234,19 @@ namespace IR_TESTS_NS {
             }
         }
 
-        IR_TESTS_NS::Tests::TestResolve("www.google.com");
-
         if (successes != m_tests.size()) {
-            SR_ERROR("Tests::RunAll() : tests failed: {}/{}.\n", successes, m_tests.size());
+            SR_ERROR("Tests::RunAll() : {} tests have failed, overall {}/{} are successful.\n", m_tests.size() - successes, successes, m_tests.size());
             return;
         }
 
         SR_LOG("Tests::RunAll() : all tests passed successfully: {}/{}!\n", successes, m_tests.size());
+    }
+
+    void Tests::TestPinger() {
+        auto&& pContext = SR_NETWORK_NS::Context::CreateAndRun();
+        auto&& pPinger = pContext->CreatePinger();
+        //pPinger->Ping("216.58.215.36");
+        //pPinger->Ping("www.google.com");
+        pPinger->Ping("localhost");
     }
 }
