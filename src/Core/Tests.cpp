@@ -249,4 +249,10 @@ namespace IR_TESTS_NS {
         //pPinger->Ping("www.google.com");
         pPinger->Ping("localhost");
     }
+
+    bool Tests::TestECDSA() {
+
+
+        return true;
+    }
 }

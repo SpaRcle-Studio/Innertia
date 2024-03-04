@@ -15,6 +15,7 @@ namespace IR_TESTS_NS {
         static bool TestAcceptor();
         static bool TestPeerToPeer();
         static bool TestHash();
+        static bool TestECDSA();
 
         static void TestResolve(const std::string& name);
         static void TestPinger();

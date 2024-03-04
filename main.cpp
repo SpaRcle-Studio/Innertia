@@ -3,6 +3,7 @@
 #include <Utils/Types/Thread.h>
 #include <Utils/Locale/Encoding.h>
 
+#include <Cryptia/ECDSA/ECDSA.h>
 #include <Core/Tests.h>
 
 int main(int argc, char* argv[]) {
@@ -18,9 +19,9 @@ int main(int argc, char* argv[]) {
     //auto&& tests = IR_TESTS_NS::Tests();
     //tests.RunAll();
 
-    IR_TESTS_NS::Tests::TestHash();
-
-    IR_TESTS_NS::Tests::TestResolve("www.google.com");
+    IR_TESTS_NS::Tests::TestPeerToPeer();
+    //IR_TESTS_NS::Tests::TestHash();
+    //IR_TESTS_NS::Tests::TestResolve("www.google.com");
     //IR_TESTS_NS::Tests::TestPinger();
 
     //SR_PLATFORM_NS::Sleep(100000);

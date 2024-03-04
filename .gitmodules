@@ -4,3 +4,6 @@
 [submodule "libs/qtred"]
 	path = libs/qtred
 	url = https://github.com/SpaRcle-Studio/qtred.git
+[submodule "libs/Cryptia"]
+	path = libs/Cryptia
+	url = https://github.com/SpaRcle-Studio/Cryptia.git
